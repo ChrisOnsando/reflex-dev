@@ -1,5 +1,3 @@
-"""Welcome to Reflex! This file outlines the steps to create a basic app."""
-
 import reflex as rx
 import requests
 
@@ -7,7 +5,7 @@ config = rx.Config(
     app_name="reflex_dev",
 )
 
-docs_url = "https://reflex.dev/docs/getting-started/introduction/"
+url = "https://cat-fact.herokuapp.com/facts/"
 
 class State(rx.State):
     """The app state."""
@@ -15,8 +13,13 @@ class State(rx.State):
 
     def fetch_url_details(self):
         try:
-            response = requests.get(docs_url)
-            self.url_content = response.text[:500] 
+            response = requests.get(url)
+            facts = response.json()
+            table_html = "<table border='1'><tr><th>Fact</th><th>Verified</th><th>Created On</th></tr>"
+            for fact in facts:
+                table_html += f"<tr><td>{fact['text']}</td><td>{fact['status']['verified']}</td><td>{fact['createdAt']}</td></tr>"
+            table_html += "</table>"
+            self.url_content = table_html
         except requests.RequestException as e:
             self.url_content = f"Error fetching URL: {e}"
 
@@ -26,11 +29,11 @@ def index() -> rx.Component:
         rx.vstack(
             rx.heading("Hello World!", size="9"),
             rx.button(
-                "Click to fetch!",
+                "Fetch Data!",
                 on_click=State.fetch_url_details,
                 size="4",
             ),
-            rx.text(State.url_content),
+            rx.html(State.url_content),
             align="center",
             spacing="7",
             font_size="2em",
